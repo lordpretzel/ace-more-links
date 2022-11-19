@@ -3,7 +3,7 @@
 ;; Author: Boris Glavic <lordpretzel@gmail.com>
 ;; Maintainer: Boris Glavic <lordpretzel@gmail.com>
 ;; Version: 0.1
-;; Package-Requires: ((ace-link "0.4.0") (emacs "25.1"))
+;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5"))
 ;; Homepage: https://github.com/lordpretzel/ace-more-links
 ;; Keywords: convenience
 
@@ -34,6 +34,8 @@
 (require 'seq)
 (require 'avy)
 (require 'ace-link)
+(require 'mu4e)
+(require 'markdown-mode)
 
 ;; ********************************************************************************
 ;; FUNCTIONS
@@ -262,4 +264,5 @@
   (setq ace-link-fallback-function #'ace-more-links-ace-link-global-handler))
 
 (provide 'ace-more-links)
+
 ;;; ace-more-links.el ends here
