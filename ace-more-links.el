@@ -3,7 +3,7 @@
 ;; Author: Boris Glavic <lordpretzel@gmail.com>
 ;; Maintainer: Boris Glavic <lordpretzel@gmail.com>
 ;; Version: 0.1
-;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5"))
+;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5") (dash "2.19"))
 ;; Homepage: https://github.com/lordpretzel/ace-more-links
 ;; Keywords: convenience
 
@@ -36,6 +36,8 @@
 (require 'ace-link)
 (require 'mu4e)
 (require 'markdown-mode)
+(require 'dash)
+(require 'imenu)
 
 ;; ********************************************************************************
 ;; FUNCTIONS
@@ -212,7 +214,7 @@
            (bookmark (car (seq-filter (lambda (x) (eq (plist-get x :key) shortcut)) (mu4e-bookmarks))))
            (query    (plist-get bookmark :query)))
       (message "search %s %s" query shortcut)
-      (mu4e-headers-search query))))
+      (mu4e-search query))))
 
 (defun ace-more-links-ace-link--mu4e-main-collect ()
   "All bookmarked queries are targets."
@@ -228,12 +230,38 @@
 (defun ace-more-links-ace-link-mu4e-main ()
   "Switch to a bookmark in `mu4e-main-mode'."
   (interactive)
-  (let ((pt (avy-with ace-more-links-ace-link-reftex-toc
+  (let ((pt (avy-with ace-more-links-ace-link-mu4e-main
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--mu4e-main-collect))
                (avy--style-fn avy-style)))))
     (ace-more-links-ace-link--mu4e-main-action pt)))
 
+;; ********************************************************************************
+;; elisp
+
+(defun ace-more-links-ace-link--elisp-action (pt)
+  "Action when link is selected at `PT' in `mu4e-main-mode' through `ace-link'."
+  (when (numberp pt)
+    (goto-char pt)))
+
+(defun ace-more-links-ace-link--elisp-collect ()
+  "All elisp functions and variables."
+  (save-excursion
+    (let ((end (window-end))
+          (start (window-start))
+          (elisp-elements (imenu-default-create-index-function)))
+      (->> elisp-elements
+           (--map (cons (car it) (marker-position (cdr it))))
+           (--filter (and (<= start (cdr it)) (>= end (cdr it))))))))
+
+(defun ace-more-links-ace-link-elisp ()
+  "Jump to function in `emacs-lisp-mode'."
+  (interactive)
+  (let ((pt (avy-with ace-more-links-ace-link-elisp
+              (avy-process
+               (mapcar #'cdr (ace-more-links-ace-link--elisp-collect))
+               (avy--style-fn avy-style)))))
+    (ace-more-links-ace-link--elisp-action pt)))
 
 ;; ********************************************************************************
 ;; global dispatcher to select right jump method
@@ -252,6 +280,8 @@
          (ace-more-links-ace-link-reftex-toc))
         ((eq major-mode 'mu4e-main-mode)
          (ace-more-links-ace-link-mu4e-main))
+        ((eq major-mode 'emacs-lisp-mode)
+         (ace-more-links-ace-link-elisp))
         ;; unknown mode -> error
         (t
          (error
