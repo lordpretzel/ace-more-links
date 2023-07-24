@@ -264,6 +264,36 @@
     (ace-more-links-ace-link--elisp-action pt)))
 
 ;; ********************************************************************************
+;; elfeed
+(defun ace-more-links-ace-link--elfeed-action (pt)
+  "Action when link is selected at `PT' in `elfeed' through `ace-link'."
+  (when (numberp pt)
+    (goto-char pt)
+    (call-interactively 'lordpretzel/elfeed-open-entry-in-xwidgets)))
+
+(defun ace-more-links-ace-link--elfeed-collect ()
+  "Every line except for the header is a link target."
+  (let ((end (window-end))
+        start
+        res)
+    (save-excursion
+      (goto-char (point-min))
+      (setq start (line-beginning-position 1))
+      (setq res (ace-more-links-regex-search-in-range start end "^."))
+      (sort res (lambda (a b) (< (cdr a) (cdr b)))))))
+
+;; link handling for elfeed
+(defun ace-more-links-ace-link-elfeed ()
+  "Switch to a buffer in the elfeeds list (`elfeed-mode')."
+  (interactive)
+  (let ((pt (avy-with ace-more-links-ace-link-elfeed
+              (avy-process
+               (mapcar #'cdr (ace-more-links-ace-link--elfeed-collect))
+               (avy--style-fn avy-style)))))
+    (ace-more-links-ace-link--elfeed-action pt)))
+
+
+;; ********************************************************************************
 ;; global dispatcher to select right jump method
 (defun ace-more-links-ace-link-global-handler ()
   "Call the `ace-link' function for the current `major-mode'."
@@ -282,6 +312,8 @@
          (ace-more-links-ace-link-mu4e-main))
         ((eq major-mode 'emacs-lisp-mode)
          (ace-more-links-ace-link-elisp))
+        ((eq major-mode 'elfeed-search-mode)
+         (ace-more-links-ace-link-elfeed))
         ;; unknown mode -> error
         (t
          (error
