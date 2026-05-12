@@ -88,7 +88,38 @@
     (ace-more-links-ace-link--md-action pt)))
 
 ;; ********************************************************************************
+;; ********************************************************************************************
+;; lsp-mode / eglot (use imenu symbols as proxy)
+
+(defun ace-more-links-ace-link--lsp-collect ()
+  "Collects symbols in the visible part of the buffer using imenu."
+  (save-excursion
+    (let ((end (window-end))
+          (start (window-start))
+          (symbols (imenu-default-create-index-function)))
+      (->> symbols
+           (--map (cons (car it) (marker-position (cdr it))))
+           (--filter (and (<= start (cdr it)) (>= end (cdr it))))
+           (--map (lambda (x) (cons (car x) (cdr x))))))))
+
+(defun ace-more-links-ace-link--lsp-action (pt)
+  "Action when link is selected at PT in LSP-enabled buffer."
+  (when (numberp pt)
+    (goto-char pt)
+    (call-interactively 'xref-find-definitions)))
+
+(defun ace-more-links-ace-link-lsp ()
+  "Open a visible LSP symbol in the current buffer."
+  (interactive)
+  (let ((pt (avy-with ace-more-links-ace-link-lsp
+              (avy-process
+               (mapcar #'cdr (ace-more-links-ace-link--lsp-collect))
+               (avy--style-fn avy-style)))))
+    (ace-more-links-ace-link--lsp-action pt)))
+
+;; ***********************************************************************************
 ;; imenu-list-major-mode (jump to entries listed in imenu)
+
 
 (defun ace-more-links-ace-link--imenu-action (pt)
   "Action when when link is selected at PT in `imenu-list' through `ace-link'."
@@ -314,6 +345,14 @@
          (ace-more-links-ace-link-elisp))
         ((eq major-mode 'elfeed-search-mode)
          (ace-more-links-ace-link-elfeed))
+        ;; if it is not a specific buffer type, then if the current buffer has
+        ;; lsp-mode active, use lsp-find-definition
+        (lsp-mode
+         (ace-more-links-ace-link-lsp))
+        ;; ((eq major-mode 'lsp-mode)
+        ;;  (ace-more-links-ace-link-lsp))
+        ;; ((eq major-mode 'eglot)
+        ;;  (ace-more-links-ace-link-lsp))
         ;; unknown mode -> error
         (t
          (error
