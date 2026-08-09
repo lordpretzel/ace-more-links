@@ -323,6 +323,44 @@
                (avy--style-fn avy-style)))))
     (ace-more-links-ace-link--elfeed-action pt)))
 
+;; ********************************************************************************
+;; dashboard
+;;;###autoload
+(defun ace-link-dashboard ()
+  "Open a visible link in an `Dashboard-mode' buffer."
+  (interactive)
+  (let ((pt (avy-with ace-link-dashboard
+              (avy-process
+               (ace-link--dashboard-collect)
+               (avy--style-fn avy-style)))))
+    (ace-link--dashboard-action pt)))
+
+(defun ace-link--dashboard-action (pt)
+  "Move to PT and press button."
+  (when (number-or-marker-p (car pt))
+    (let* ((pos (if (markerp (car pt)) (marker-position (car pt)) pt))
+           (btn (button-at (point))))
+        (button-activate btn))))
+
+(defun ace-link--dashboard-collect ()
+  "Collect the positions of visible links in the current `Dashboard-mode' buffer."
+  (let (buttons pt)
+    (save-excursion
+      (save-restriction
+        (let ((pos (point-min))
+              btn)
+          (save-excursion
+            (while (< pos (point-max))
+              (goto-char pos)
+              (when (setq btn (button-at pos))
+                (push (cons btn pos) buttons)
+                ;; Jump to end of this button to avoid re-matching same area
+                (setq pos (or (button-start btn) (1+ pos))))
+              (setq pos (next-property-change pos (current-buffer))
+                    pos (if (or (null pos) (= pos (point-max)))
+                            (point-max)
+                          pos))))
+          (nreverse buttons))))))
 
 ;; ********************************************************************************
 ;; global dispatcher to select right jump method
@@ -345,6 +383,8 @@
          (ace-more-links-ace-link-elisp))
         ((eq major-mode 'elfeed-search-mode)
          (ace-more-links-ace-link-elfeed))
+        ((eq major-mode 'dashboard-mode)
+         (ace-link-dashboard))
         ;; if it is not a specific buffer type, then if the current buffer has
         ;; lsp-mode active, use lsp-find-definition
         (lsp-mode
