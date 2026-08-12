@@ -3,7 +3,7 @@
 ;; Author: Boris Glavic <lordpretzel@gmail.com>
 ;; Maintainer: Boris Glavic <lordpretzel@gmail.com>
 ;; Version: 0.1
-;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5") (dash "2.19") (mu4e "1.10") (lsp-mode "9.0"))
+;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5") (dash "2.19") (lsp-mode "9.0"))
 ;; Homepage: https://github.com/lordpretzel/ace-more-links
 ;; Keywords: convenience
 
@@ -34,7 +34,7 @@
 (require 'seq)
 (require 'avy)
 (require 'ace-link)
-(require 'mu4e)
+(require 'mu4e nil t)
 (require 'markdown-mode)
 (require 'dash)
 (require 'imenu)
@@ -86,7 +86,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--md-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--md-action pt)))
+    (ace-more-links-ace-link--md-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; ********************************************************************************************
@@ -116,7 +117,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--lsp-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--lsp-action pt)))
+    (ace-more-links-ace-link--lsp-action pt)
+    pt))
 
 ;; ***********************************************************************************
 ;; imenu-list-major-mode (jump to entries listed in imenu)
@@ -144,7 +146,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--imenu-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--imenu-action pt)))
+    (ace-more-links-ace-link--imenu-action pt)
+    pt))
 
 
 ;; ********************************************************************************
@@ -173,7 +176,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--bookmark-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--bookmark-action pt)))
+    (ace-more-links-ace-link--bookmark-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; ibuffer-mode (switch to buffers in ibuffer)
@@ -202,7 +206,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--ibuffer-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--ibuffer-action pt)))
+    (ace-more-links-ace-link--ibuffer-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; reftex-toc-mode
@@ -232,11 +237,14 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--reftex-toc-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--reftex-toc-action pt)))
+    (ace-more-links-ace-link--reftex-toc-action pt)
+    pt))
 
 
 ;; ********************************************************************************
 ;; mu4e-main
+(declare-function #'mu4e-bookmarks "mu4e-bookmarks" nil t)
+(declare-function #'mu4e-search "mu4e-search" nil t)
 
 (defun ace-more-links-ace-link--mu4e-main-action (pt)
   "Action when link is selected at `PT' in `mu4e-main-mode' through `ace-link'."
@@ -266,7 +274,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--mu4e-main-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--mu4e-main-action pt)))
+    (ace-more-links-ace-link--mu4e-main-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; elisp
@@ -293,7 +302,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--elisp-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--elisp-action pt)))
+    (ace-more-links-ace-link--elisp-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; elfeed
@@ -322,7 +332,8 @@
               (avy-process
                (mapcar #'cdr (ace-more-links-ace-link--elfeed-collect))
                (avy--style-fn avy-style)))))
-    (ace-more-links-ace-link--elfeed-action pt)))
+    (ace-more-links-ace-link--elfeed-action pt)
+    pt))
 
 ;; ********************************************************************************
 ;; dashboard
@@ -340,7 +351,8 @@
   "Move to PT and press button."
   (when (number-or-marker-p (car pt))
     (let* ((btn (button-at (point))))
-        (button-activate btn))))
+      (button-activate btn)
+      t)))
 
 (defun ace-more-links--dashboard-collect ()
   "Collect the positions of visible links in the current `Dashboard-mode' buffer."
@@ -389,7 +401,8 @@
         ((eq major-mode 'dashboard-mode)
          (ace-more-links-dashboard))
         ((and (eq major-mode 'vui-mode) (fboundp 'ace-link-vui))
-         (ace-link-vui-action))
+         (ace-link-vui-action)
+         t)
         ;; if it is not a specific buffer type, then if the current buffer has
         ;; lsp-mode active, use lsp-find-definition
         (lsp-mode
@@ -402,6 +415,7 @@
         (t
          (error
           "%S isn't supported"
+
           major-mode))))
 
 ;;;###autoload
