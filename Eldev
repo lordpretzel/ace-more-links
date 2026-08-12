@@ -1,10 +1,9 @@
 ; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
 ;; Uncomment some calls below as needed for your project.
-;(eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa)
-
-(defconst mu4e-path "/opt/homebrew/Cellar/mu/1.8.11/share/emacs/site-lisp/mu/mu4e/")
+(eldev-use-package-archive 'gnu-devel)
+(defconst mu4e-path "/opt/homebrew/Cellar/mu/1.14.3/share/emacs/site-lisp/mu/mu4e/")
 
 (add-to-list 'load-path mu4e-path)
 (eldev-use-local-dependency mu4e-path)

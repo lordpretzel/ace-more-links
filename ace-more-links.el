@@ -3,7 +3,7 @@
 ;; Author: Boris Glavic <lordpretzel@gmail.com>
 ;; Maintainer: Boris Glavic <lordpretzel@gmail.com>
 ;; Version: 0.1
-;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5") (dash "2.19"))
+;; Package-Requires: ((avy "0.5") (ace-link "0.4.0") (emacs "25.1") (markdown-mode "2.5") (dash "2.19") (mu4e "1.10") (lsp-mode "9.0"))
 ;; Homepage: https://github.com/lordpretzel/ace-more-links
 ;; Keywords: convenience
 
@@ -38,6 +38,7 @@
 (require 'markdown-mode)
 (require 'dash)
 (require 'imenu)
+(require 'lsp-mode)
 
 ;; ********************************************************************************
 ;; FUNCTIONS
@@ -326,25 +327,24 @@
 ;; ********************************************************************************
 ;; dashboard
 ;;;###autoload
-(defun ace-link-dashboard ()
+(defun ace-more-links-dashboard ()
   "Open a visible link in an `Dashboard-mode' buffer."
   (interactive)
   (let ((pt (avy-with ace-link-dashboard
               (avy-process
-               (ace-link--dashboard-collect)
+               (ace-more-links--dashboard-collect)
                (avy--style-fn avy-style)))))
-    (ace-link--dashboard-action pt)))
+    (ace-more-links--dashboard-action pt)))
 
-(defun ace-link--dashboard-action (pt)
+(defun ace-more-links--dashboard-action (pt)
   "Move to PT and press button."
   (when (number-or-marker-p (car pt))
-    (let* ((pos (if (markerp (car pt)) (marker-position (car pt)) pt))
-           (btn (button-at (point))))
+    (let* ((btn (button-at (point))))
         (button-activate btn))))
 
-(defun ace-link--dashboard-collect ()
+(defun ace-more-links--dashboard-collect ()
   "Collect the positions of visible links in the current `Dashboard-mode' buffer."
-  (let (buttons pt)
+  (let (buttons)
     (save-excursion
       (save-restriction
         (let ((pos (point-min))
@@ -362,6 +362,9 @@
                           pos))))
           (nreverse buttons))))))
 
+;; keep byte compiler quiet if we do not have vui action (not on melpa)
+(declare-function ace-link-vui-action nil t)
+                  
 ;; ********************************************************************************
 ;; global dispatcher to select right jump method
 (defun ace-more-links-ace-link-global-handler ()
@@ -384,7 +387,9 @@
         ((eq major-mode 'elfeed-search-mode)
          (ace-more-links-ace-link-elfeed))
         ((eq major-mode 'dashboard-mode)
-         (ace-link-dashboard))
+         (ace-more-links-dashboard))
+        ((and (eq major-mode 'vui-mode) (fboundp 'ace-link-vui))
+         (ace-link-vui-action))
         ;; if it is not a specific buffer type, then if the current buffer has
         ;; lsp-mode active, use lsp-find-definition
         (lsp-mode
