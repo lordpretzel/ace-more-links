@@ -400,7 +400,7 @@
          (ace-more-links-ace-link-elfeed))
         ((eq major-mode 'dashboard-mode)
          (ace-more-links-dashboard))
-        ((and (eq major-mode 'vui-mode) (fboundp 'ace-link-vui))
+        ((and (derived-mode-p 'vui-mode) (fboundp 'ace-link-vui))
          (ace-link-vui-action)
          t)
         ;; if it is not a specific buffer type, then if the current buffer has
